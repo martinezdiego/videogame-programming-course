@@ -13,7 +13,7 @@
 #include <SFML/Audio.hpp>
 #include <SFML/Graphics.hpp>
 
-#include <src/states/StateMachine.hpp>
+#include <src/modes/GameMode.hpp>
 
 class Game
 {
@@ -32,12 +32,17 @@ public:
 
     void render() noexcept;
 
+    void change_game_mode(const std::string & mode_name) noexcept;
+
 private:
     sf::RenderWindow render_window;
     sf::RenderTexture render_texture;
     sf::Sprite render_sprite;
 
-    StateMachine state_machine;
+    using GameModeBuilder = std::function<std::shared_ptr<GameMode>(Game*)>;
+    
+    std::unordered_map<std::string, GameModeBuilder> game_modes;
+    std::shared_ptr<GameMode> current_game_mode{std::make_shared<GameMode>(this)};
 
     bool bird_is_dead{false};
     int score{0};
