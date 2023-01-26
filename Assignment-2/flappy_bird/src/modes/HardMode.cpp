@@ -8,7 +8,16 @@ HardMode::HardMode(std::shared_ptr<World> world, std::shared_ptr<Bird> bird) :
 
 void HardMode::handle_inputs(const sf::Event & event) noexcept
 {
+    if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+        bird->jump();
+    }
     
+    if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Left) {
+        bird->move_left();
+    }
+    else if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Right) {
+        bird->move_right();
+    }
 }
 
 

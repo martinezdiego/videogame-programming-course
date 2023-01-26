@@ -25,6 +25,10 @@ public:
 
     void jump() noexcept;
 
+    void move_left() noexcept;
+
+    void move_right() noexcept;
+
     void update(float dt) noexcept;
 
     void render(sf::RenderTarget& target) const noexcept;
@@ -35,6 +39,7 @@ private:
     float width;
     float height;
     float vy;
+    float vx;
     sf::Sprite sprite;
     bool jumping{false};
 };
