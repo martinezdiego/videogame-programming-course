@@ -2,12 +2,15 @@
 
 #include <SFML/Graphics.hpp>
 
-class Game;
+#include <src/Bird.hpp>
+#include <src/World.hpp>
 
 class GameMode
 {
 public:
-    GameMode(Game* _game): game{_game} {}
+    enum class Mode { NORMAL, HARD };
+
+    GameMode(std::shared_ptr<World> _world, std::shared_ptr<Bird> _bird) : world{_world}, bird{_bird} {}
 
     virtual ~GameMode() {}
 
@@ -17,6 +20,7 @@ public:
 
     virtual void render(sf::RenderTarget & target) noexcept {}
 
-private:
-    Game* game;
+protected:
+    std::shared_ptr<Bird> bird;
+    std::shared_ptr<World> world;
 };

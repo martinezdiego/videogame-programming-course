@@ -44,3 +44,13 @@ void StateMachine::render(sf::RenderTarget& target) const noexcept
 {
     current_state->render(target);
 }
+
+void StateMachine::set_game_mode(GameMode::Mode game_mode) noexcept
+{
+    current_game_mode = game_mode;
+}
+
+const GameMode::Mode & StateMachine::get_game_mode() const noexcept
+{
+    return current_game_mode;
+}

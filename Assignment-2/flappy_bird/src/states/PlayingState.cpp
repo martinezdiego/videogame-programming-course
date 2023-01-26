@@ -10,13 +10,17 @@
 
 #include <Settings.hpp>
 #include <src/text_utilities.hpp>
+
 #include <src/states/StateMachine.hpp>
 #include <src/states/PlayingState.hpp>
 
-PlayingState::PlayingState(StateMachine* sm) noexcept
-    : BaseState{sm}
-{
+#include <src/modes/NormalMode.hpp>
+#include <src/modes/HardMode.hpp>
 
+PlayingState::PlayingState(StateMachine* sm) noexcept
+    : BaseState{sm}, game_mode_handler{nullptr}
+{
+    
 }
 
 void PlayingState::enter(std::shared_ptr<World> _world, std::shared_ptr<Bird> _bird, int _score) noexcept
@@ -42,23 +46,32 @@ void PlayingState::enter(std::shared_ptr<World> _world, std::shared_ptr<Bird> _b
     if (music_status != sf::SoundSource::Status::Playing) {
         Settings::music.play();
     }
+
+    if (game_mode_handler == nullptr) {
+
+        auto current_game_mode = state_machine->get_game_mode();
+
+        if (current_game_mode== GameMode::Mode::NORMAL) {
+            game_mode_handler = std::make_shared<NormalMode>(world, bird);
+        }
+        else if (current_game_mode == GameMode::Mode::HARD) {
+            game_mode_handler = std::make_shared<HardMode>(world, bird);
+        }
+    }
 }
 
 void PlayingState::handle_inputs(const sf::Event& event) noexcept
 {
-    if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
-    {
-        bird->jump();
-    }
-    else if (event.type == sf::Event::KeyPressed and event.key.code == sf::Keyboard::P) {
+    game_mode_handler->handle_inputs(event);
+    
+    if (event.type == sf::Event::KeyPressed and event.key.code == sf::Keyboard::P) {
         state_machine->change_state("pause", world, bird, score);
     }
 }
 
 void PlayingState::update(float dt) noexcept
 {
-    bird->update(dt);
-    world->update(dt);
+    game_mode_handler->update(dt);
 
     if (world->collides(bird->get_collision_rect()))
     {
@@ -76,7 +89,8 @@ void PlayingState::update(float dt) noexcept
 
 void PlayingState::render(sf::RenderTarget& target) const noexcept
 {
-    world->render(target);
-    bird->render(target);
+    // world->render(target);
+    // bird->render(target);
+    game_mode_handler->render(target);
     render_text(target, 20, 10, "Score: " + std::to_string(score), Settings::FLAPPY_TEXT_SIZE, "flappy", sf::Color::White);
 }

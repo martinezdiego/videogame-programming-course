@@ -3,20 +3,15 @@
 
 #include <src/modes/GameMode.hpp>
 
-#include <src/states/StateMachine.hpp>
-
 class NormalMode: public GameMode
 {
 public:
-    NormalMode(Game* game);
+    NormalMode(std::shared_ptr<World> world, std::shared_ptr<Bird> bird);
 
     void handle_inputs(const sf::Event & event) noexcept override;
 
     void update(float dt) noexcept override;
 
     void render(sf::RenderTarget & target) noexcept override;
-
-private:
-    StateMachine state_machine;
 };
 

@@ -4,7 +4,7 @@ INCLUDE = -I.
 
 BUILD_DIR = build
 
-OBJ_RULES = text_utilities.o Settings.o Game.o Bird.o Log.o LogPair.o World.o StateMachine.o TitleScreenState.o CountDownState.o PlayingState.o PauseState.o NormalMode.o HardMode.o
+OBJ_RULES = text_utilities.o Settings.o Game.o Bird.o Log.o LogPair.o World.o StateMachine.o TitleScreenState.o CountDownState.o PlayingState.o PauseState.o ModeSelectionState.o NormalMode.o HardMode.o
 
 LIBS = -lsfml-graphics -lsfml-audio -lsfml-window -lsfml-system $(BUILD_DIR)/*.o
 
@@ -46,6 +46,9 @@ PlayingState.o: $(BUILD_DIR) src/states/PlayingState.hpp src/states/PlayingState
 
 PauseState.o: $(BUILD_DIR) src/states/PauseState.hpp src/states/PauseState.cpp
 	$(CXX) -c $(INCLUDE) src/states/PauseState.cpp -o $(BUILD_DIR)/$@
+
+ModeSelectionState.o: $(BUILD_DIR) src/states/ModeSelectionState.hpp src/states/ModeSelectionState.cpp
+	$(CXX) -c $(INCLUDE) src/states/ModeSelectionState.cpp -o $(BUILD_DIR)/$@
 
 NormalMode.o: $(BUILD_DIR) src/modes/NormalMode.hpp src/modes/NormalMode.cpp
 	$(CXX) -c $(INCLUDE) src/modes/NormalMode.cpp -o $(BUILD_DIR)/$@

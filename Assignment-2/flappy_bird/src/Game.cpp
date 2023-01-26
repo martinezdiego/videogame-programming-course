@@ -10,17 +10,24 @@
 
 #include <Settings.hpp>
 #include <src/Game.hpp>
-#include <src/modes/NormalMode.hpp>
-#include <src/modes/HardMode.hpp>
+
+#include <src/states/TitleScreenState.hpp>
+#include <src/states/CountDownState.hpp>
+#include <src/states/PlayingState.hpp>
+#include <src/states/PauseState.hpp>
+#include <src/states/ModeSelectionState.hpp>
 
 Game::Game()
     : render_window{sf::VideoMode{Settings::WINDOW_WIDTH, Settings::WINDOW_HEIGHT}, "Flappy Bird", sf::Style::Close},
       render_texture{},
       render_sprite{},
-      game_modes{
-        {"normal", [](Game* game) { return std::make_shared<NormalMode>(game); }},
-        {"hard", [](Game* game) { return std::make_shared<HardMode>(game); }}
-    }
+      state_machine {
+        {"title", [](StateMachine* sm) { return std::make_shared<TitleScreenState>(sm); }},
+        {"mode_selection", [](StateMachine* sm) { return std::make_shared<ModeSelectionState>(sm); }},
+        {"count_down", [](StateMachine* sm) { return std::make_shared<CountDownState>(sm); }},
+        {"playing", [](StateMachine* sm) { return std::make_shared<PlayingState>(sm); }},
+        {"pause", [](StateMachine* sm) { return std::make_shared<PauseState>(sm); }}
+      }
 {
     render_texture.create(Settings::VIRTUAL_WIDTH, Settings::VIRTUAL_HEIGHT);
 
@@ -32,7 +39,7 @@ Game::Game()
     render_sprite.setTexture(render_texture.getTexture());
     render_sprite.setScale(scale_factors);
 
-    change_game_mode("normal");
+    state_machine.change_state("title");
 
     Settings::music.setLoop(true);
     Settings::music.play();
@@ -45,34 +52,22 @@ sf::RenderWindow& Game::get_window() noexcept
 
 void Game::handle_inputs(const sf::Event& event) noexcept
 {
-    current_game_mode->handle_inputs(event);
+    state_machine.handle_inputs(event);
 }
 
 void Game::update(float dt) noexcept
 {
-    current_game_mode->update(dt);
+    state_machine.update(dt);
 }
 
 void Game::render() noexcept
 {
     render_texture.clear(sf::Color::Black);
     
-    current_game_mode->render(render_texture);
+    state_machine.render(render_texture);
 
     render_texture.display();
 
     render_window.draw(render_sprite);
     render_window.display();
-}
-
-void Game::change_game_mode(const std::string & mode_name) noexcept
-{
-    auto it = game_modes.find(mode_name);
-
-    if (it == game_modes.end())
-    {
-        return;
-    }
-
-    current_game_mode = it->second(this);
 }
