@@ -18,8 +18,6 @@ public:
 
     virtual void update(float dt) noexcept {}
 
-    virtual void render(sf::RenderTarget & target) noexcept {}
-
 protected:
     std::shared_ptr<Bird> bird;
     std::shared_ptr<World> world;

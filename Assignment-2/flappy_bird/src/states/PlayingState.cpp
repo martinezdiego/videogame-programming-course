@@ -89,8 +89,8 @@ void PlayingState::update(float dt) noexcept
 
 void PlayingState::render(sf::RenderTarget& target) const noexcept
 {
-    // world->render(target);
-    // bird->render(target);
-    game_mode_handler->render(target);
+    world->render(target);
+    bird->render(target);
+    
     render_text(target, 20, 10, "Score: " + std::to_string(score), Settings::FLAPPY_TEXT_SIZE, "flappy", sf::Color::White);
 }

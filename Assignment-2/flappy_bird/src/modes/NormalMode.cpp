@@ -21,9 +21,3 @@ void NormalMode::update(float dt) noexcept
     bird->update(dt);
     world->update(dt);
 }
-
-void NormalMode::render(sf::RenderTarget & target) noexcept
-{
-    world->render(target);
-    bird->render(target);
-}
