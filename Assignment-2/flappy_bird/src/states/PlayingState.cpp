@@ -79,8 +79,7 @@ void PlayingState::update(float dt) noexcept
         Settings::sounds["hurt"].play();
         state_machine->change_state("count_down");
     }
-
-    if (world->update_scored(bird->get_collision_rect()))
+    else if (world->update_scored(bird->get_collision_rect()))
     {
         ++score;
         Settings::sounds["score"].play();
