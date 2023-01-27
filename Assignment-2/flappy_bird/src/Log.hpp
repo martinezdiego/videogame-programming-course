@@ -19,13 +19,16 @@ public:
 
     sf::FloatRect get_collision_rect() const noexcept;
 
-    void update(float _x) noexcept;
+    void update(float _x, float _dy = 0) noexcept;
 
     void render(sf::RenderTarget& target) const noexcept;
+
+    void reset(float _x, float _y) noexcept;
 
 private:
     float x;
     float y;
+    
     bool inverted;
     sf::Sprite sprite;
 };

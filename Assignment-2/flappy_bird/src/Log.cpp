@@ -30,19 +30,26 @@ sf::FloatRect Log::get_collision_rect() const noexcept
     return sf::FloatRect{x - Settings::LOG_WIDTH, y - Settings::LOG_HEIGHT, Settings::LOG_WIDTH, Settings::LOG_HEIGHT};
 }
 
-void Log::update(float _x) noexcept
+void Log::update(float _x, float _dy) noexcept
 {
     x = _x;
+    y += _dy;
 
     if (inverted)
     {
         x += Settings::LOG_WIDTH;
     }
-
+    
     sprite.setPosition(x, y);
 }
 
 void Log::render(sf::RenderTarget& target) const noexcept
 {
     target.draw(sprite);
+}
+
+void Log::reset(float _x, float _y) noexcept
+{
+    x = _x;
+    y = _y;
 }

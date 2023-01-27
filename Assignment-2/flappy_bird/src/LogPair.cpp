@@ -11,18 +11,10 @@
 #include <Settings.hpp>
 #include <src/LogPair.hpp>
 
-LogPair::LogPair(float _x, float _y) noexcept
-    : x{_x}, y{_y},
+LogPair::LogPair(float _x, float _y, float _gap) noexcept
+    : x{_x}, y{_y}, gap{_gap},
       top{x, y + Settings::LOG_HEIGHT, true},
-      bottom{x, y + Settings::LOGS_GAP + Settings::LOG_HEIGHT, false}
-{
-
-}
-
-LogPair::LogPair(float _x, float _y, float gap) noexcept
-    : x{_x}, y{_y},
-      top{x, y + Settings::LOG_HEIGHT, true},
-      bottom{x, y + gap + Settings::LOG_HEIGHT, false}
+      bottom{x, y + _gap + Settings::LOG_HEIGHT, false}
 {
 
 }
@@ -35,9 +27,35 @@ bool LogPair::collides(const sf::FloatRect& rect) const noexcept
 void LogPair::update(float dt) noexcept
 {
     x += -Settings::MAIN_SCROLL_SPEED * dt;
+    float dy = (Settings::MAIN_SCROLL_SPEED / 2) * dt;
 
-    top.update(x);
-    bottom.update(x);
+    if (dynamic) {
+
+        if (is_closing) {
+            top.update(x, dy);
+            bottom.update(x, -dy);
+        }
+        else {
+            top.update(x, -dy);
+            bottom.update(x, dy);
+        }
+
+        bool collide_each_other = top.get_collision_rect().intersects(bottom.get_collision_rect());
+        bool returned_to_start_pos = top.get_collision_rect().top <= y;
+
+        if (collide_each_other) {
+            Settings::sounds["hit_someting"].play();
+            is_closing = false;
+        }
+
+        if (returned_to_start_pos) {
+            is_closing = true;
+        }
+    }
+    else {
+        top.update(x);
+        bottom.update(x);
+    }
 }
 
 void LogPair::render(sf::RenderTarget& target) const noexcept
@@ -72,4 +90,12 @@ void LogPair::reset(float _x, float _y) noexcept
     x = _x;
     y = _y;
     scored = false;
+    top.reset(x, y + Settings::LOG_HEIGHT);
+    bottom.reset(x, y + gap + Settings::LOG_HEIGHT);
+}
+
+
+void LogPair::set_dynamic(bool _dynamic) noexcept
+{
+    dynamic = _dynamic;
 }

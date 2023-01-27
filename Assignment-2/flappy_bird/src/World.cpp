@@ -126,22 +126,25 @@ void World::update_hard_mode(float dt) noexcept
             logs_spawn_timer = 0.f;
             
             std::uniform_real_distribution<float> time_dist{Settings::TIME_TO_SPAWN_LOGS, Settings::TIME_TO_SPAWN_LOGS * 2};
-            std::uniform_int_distribution<int> gap_dist{(int)(-Settings::LOGS_GAP / 2), (int) (Settings::LOGS_GAP / 4)};
-            std::uniform_int_distribution<int> min_log_y_dist{-50, 0};
-            std::uniform_int_distribution<int> max_log_y_dist{0, 50};
+            std::uniform_int_distribution<int> gap_dist{0, (int) (Settings::LOGS_GAP / 2)};
+            std::uniform_int_distribution<int> dist{-40, 20};
             
-            int log_y_increment = (logs_spawn_time < (Settings::TIME_TO_SPAWN_LOGS * 3)/2 ? max_log_y_dist(rng) : min_log_y_dist(rng));
-            int logs_gap_increment = gap_dist(rng);
+            int logs_gap_increment = 0;
+            bool make_it_dynamic = dist(rng)%2 == 0;
             
-            float y = std::max(-Settings::LOG_HEIGHT + 10, std::min(last_log_y + log_y_increment, Settings::VIRTUAL_HEIGHT + Settings::LOGS_GAP  + logs_gap_increment - Settings::LOG_HEIGHT));
-            
-            if (y + Settings::LOGS_GAP + logs_gap_increment > Settings::VIRTUAL_HEIGHT - Settings::GROUND_HEIGHT) {
-                logs_gap_increment = 0;
+            if (make_it_dynamic) {
+                logs_gap_increment = gap_dist(rng);
             }
+
+            float y = std::max(-Settings::LOG_HEIGHT + 10, std::min(last_log_y + dist(rng), Settings::VIRTUAL_HEIGHT + Settings::LOGS_GAP  + logs_gap_increment - Settings::LOG_HEIGHT));
             
             last_log_y = y;
 
             logs.push_back(log_factory.create(Settings::VIRTUAL_WIDTH, y, Settings::LOGS_GAP + logs_gap_increment));
+            
+            if (make_it_dynamic) {
+                logs.back()->set_dynamic(true);
+            }
 
             logs_spawn_time = time_dist(rng);
         }

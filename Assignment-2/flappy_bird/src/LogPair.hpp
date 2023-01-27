@@ -16,9 +16,7 @@
 class LogPair
 {
 public:
-    LogPair(float _x, float _y) noexcept;
-
-    LogPair(float _x, float _y, float gap) noexcept;
+    LogPair(float _x, float _y, float _gap = 0) noexcept;
 
     bool collides(const sf::FloatRect& rect) const noexcept;
 
@@ -32,11 +30,16 @@ public:
 
     void reset(float _x, float _y) noexcept;
 
+    void set_dynamic(bool _dynamic = false) noexcept;
+
 private:
     float x;
     float y;
+    float gap;
     Log top;
     Log bottom;
 
     bool scored{false};
+    bool dynamic{false};
+    bool is_closing{true};
 };
