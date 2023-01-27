@@ -36,6 +36,8 @@ public:
 
     void update(float dt) noexcept;
 
+    void update_hard_mode(float dt) noexcept;
+
     void render(sf::RenderTarget& target) const noexcept;
 private:
     bool generate_logs;
@@ -54,4 +56,5 @@ private:
 
     float logs_spawn_timer{0.f};
     float last_log_y{0.f};
+    float logs_spawn_time;
 };

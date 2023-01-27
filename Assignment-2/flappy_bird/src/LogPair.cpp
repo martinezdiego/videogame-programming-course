@@ -19,6 +19,14 @@ LogPair::LogPair(float _x, float _y) noexcept
 
 }
 
+LogPair::LogPair(float _x, float _y, float gap) noexcept
+    : x{_x}, y{_y},
+      top{x, y + Settings::LOG_HEIGHT, true},
+      bottom{x, y + gap + Settings::LOG_HEIGHT, false}
+{
+
+}
+
 bool LogPair::collides(const sf::FloatRect& rect) const noexcept
 {
     return top.get_collision_rect().intersects(rect) || bottom.get_collision_rect().intersects(rect);

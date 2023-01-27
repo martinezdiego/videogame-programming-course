@@ -24,5 +24,5 @@ void HardMode::handle_inputs(const sf::Event & event) noexcept
 void HardMode::update(float dt) noexcept
 {
     bird->update(dt);
-    world->update(dt);
+    world->update_hard_mode(dt);
 }

@@ -8,13 +8,18 @@
     This file contains the definition of the class World.
 */
 
+#include <chrono>
+
 #include <Settings.hpp>
 #include <src/World.hpp>
 
 World::World(bool _generate_logs) noexcept
     : generate_logs{_generate_logs}, background{Settings::textures["background"]}, ground{Settings::textures["ground"]},
-      logs{}, rng{std::default_random_engine{}()}
+      logs{}, rng{std::default_random_engine{}()}, logs_spawn_time{Settings::TIME_TO_SPAWN_LOGS}
 {
+    unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+    rng.seed(seed);
+
     ground.setPosition(0, Settings::VIRTUAL_HEIGHT - Settings::GROUND_HEIGHT);
     std::uniform_int_distribution<int> dist(0, 80);
     last_log_y = -Settings::LOG_HEIGHT + dist(rng) + 20;
@@ -72,6 +77,73 @@ void World::update(float dt) noexcept
             last_log_y = y;
 
             logs.push_back(log_factory.create(Settings::VIRTUAL_WIDTH, y));
+        }
+    }
+
+    background_x += -Settings::BACK_SCROLL_SPEED * dt;
+
+    if (background_x <= -Settings::BACKGROUND_LOOPING_POINT)
+    {
+        background_x = 0;
+    }
+
+    background.setPosition(background_x, 0);
+
+    ground_x += -Settings::MAIN_SCROLL_SPEED * dt;
+
+    if (ground_x <= -Settings::VIRTUAL_WIDTH)
+    {
+        ground_x = 0;
+    }
+
+    ground.setPosition(ground_x, Settings::VIRTUAL_HEIGHT - Settings::GROUND_HEIGHT);
+
+    for (auto it = logs.begin(); it != logs.end(); )
+    {
+        if ((*it)->is_out_of_game())
+        {
+            auto log_pair = *it;
+            log_factory.remove(log_pair);
+            it = logs.erase(it);
+            
+        }
+        else
+        {
+            (*it)->update(dt);
+            ++it;
+        }
+    }
+}
+
+void World::update_hard_mode(float dt) noexcept
+{
+    if (generate_logs)
+    {
+        logs_spawn_timer += dt;
+
+        if (logs_spawn_timer >= logs_spawn_time)
+        {
+            logs_spawn_timer = 0.f;
+            
+            std::uniform_real_distribution<float> time_dist{Settings::TIME_TO_SPAWN_LOGS, Settings::TIME_TO_SPAWN_LOGS * 2};
+            std::uniform_int_distribution<int> gap_dist{(int)(-Settings::LOGS_GAP / 2), (int) (Settings::LOGS_GAP / 4)};
+            std::uniform_int_distribution<int> min_log_y_dist{-50, 0};
+            std::uniform_int_distribution<int> max_log_y_dist{0, 50};
+            
+            int log_y_increment = (logs_spawn_time < (Settings::TIME_TO_SPAWN_LOGS * 3)/2 ? max_log_y_dist(rng) : min_log_y_dist(rng));
+            int logs_gap_increment = gap_dist(rng);
+            
+            float y = std::max(-Settings::LOG_HEIGHT + 10, std::min(last_log_y + log_y_increment, Settings::VIRTUAL_HEIGHT + Settings::LOGS_GAP  + logs_gap_increment - Settings::LOG_HEIGHT));
+            
+            if (y + Settings::LOGS_GAP + logs_gap_increment > Settings::VIRTUAL_HEIGHT - Settings::GROUND_HEIGHT) {
+                logs_gap_increment = 0;
+            }
+            
+            last_log_y = y;
+
+            logs.push_back(log_factory.create(Settings::VIRTUAL_WIDTH, y, Settings::LOGS_GAP + logs_gap_increment));
+
+            logs_spawn_time = time_dist(rng);
         }
     }
 

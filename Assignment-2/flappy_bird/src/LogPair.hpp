@@ -18,6 +18,8 @@ class LogPair
 public:
     LogPair(float _x, float _y) noexcept;
 
+    LogPair(float _x, float _y, float gap) noexcept;
+
     bool collides(const sf::FloatRect& rect) const noexcept;
 
     void update(float dt) noexcept;
