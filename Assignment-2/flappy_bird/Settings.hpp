@@ -49,6 +49,7 @@ struct Settings
     static constexpr float POWERUP_WIDTH{17.f};
     static constexpr float POWERUP_HEIGHT{27.f};
     static constexpr float TIME_TO_SPAWN_POWERUP{7.f};
+    static constexpr float POWERUP_TIME_LIMIT{8.f};
 
 
     static std::unordered_map<std::string, sf::Texture> textures;
@@ -57,6 +58,8 @@ struct Settings
     static std::unordered_map<std::string, sf::Font> fonts;
 
     static sf::Music music;
+
+    static sf::Music powerup_music;
 
     static void init();
 

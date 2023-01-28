@@ -27,6 +27,7 @@ std::unordered_map<std::string, sf::Sound> Settings::sounds{};
 std::unordered_map<std::string, sf::Font> Settings::fonts{};
 
 sf::Music Settings::music{};
+sf::Music Settings::powerup_music{};
 
 void Settings::init()
 {
@@ -73,6 +74,14 @@ void Settings::load_textures()
     }
 
     Settings::textures["feather"] = texture;
+
+     if (!texture.loadFromFile(Settings::GRAPHICS_PATH / "bird_ghost.png"))
+    {
+        throw std::runtime_error{"Error loading texture graphics/bird_ghost.png"};
+    }
+
+    Settings::textures["bird_ghost"] = texture;
+    
 }
 
 void Settings::load_sounds()
@@ -127,13 +136,38 @@ void Settings::load_sounds()
 
     if (!buffer.loadFromFile(Settings::SOUNDS_PATH / "hit_someting.wav"))
     {
-        throw std::runtime_error{"Error loading sound sounds/hit_someting.mp3"};
+        throw std::runtime_error{"Error loading sound sounds/hit_someting.wav"};
     }
 
     result = Settings::sound_buffers.emplace("hit_someting", buffer);
 
     sound.setBuffer(result.first->second);
     Settings::sounds["hit_someting"] = sound;
+
+    if (!buffer.loadFromFile(Settings::SOUNDS_PATH / "leave_powerup.wav"))
+    {
+        throw std::runtime_error{"Error loading sound sounds/leave_powerup.wav"};
+    }
+
+    result = Settings::sound_buffers.emplace("leave_powerup", buffer);
+
+    sound.setBuffer(result.first->second);
+    Settings::sounds["leave_powerup"] = sound;
+
+    if (!buffer.loadFromFile(Settings::SOUNDS_PATH / "get_powerup.wav"))
+    {
+        throw std::runtime_error{"Error loading sound sounds/get_powerup.wav"};
+    }
+
+    result = Settings::sound_buffers.emplace("get_powerup", buffer);
+
+    sound.setBuffer(result.first->second);
+    Settings::sounds["get_powerup"] = sound;
+
+    if (!Settings::powerup_music.openFromFile(Settings::SOUNDS_PATH / "powerup_music.ogg"))
+    {
+        throw std::runtime_error{"Error loading music sounds/powerup_music.ogg"};
+    }
 }
 
 void Settings::load_fonts()
