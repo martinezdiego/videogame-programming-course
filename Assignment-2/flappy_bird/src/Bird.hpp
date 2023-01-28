@@ -29,6 +29,10 @@ public:
 
     void move_right() noexcept;
 
+    void set_invincible(bool _invensible) noexcept;
+
+    bool get_invincible() const noexcept;
+
     void update(float dt) noexcept;
 
     void render(sf::RenderTarget& target) const noexcept;
@@ -42,4 +46,5 @@ private:
     float vx;
     sf::Sprite sprite;
     bool jumping{false};
+    bool invincible{false};
 };

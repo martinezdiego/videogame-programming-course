@@ -32,6 +32,7 @@ private:
     std::shared_ptr<Bird> bird;
     std::shared_ptr<World> world;
     int score{0};
+    float powerup_limit_timer{0.f};
 
     std::shared_ptr<GameMode> game_mode_handler;
 };

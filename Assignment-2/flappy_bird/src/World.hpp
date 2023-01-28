@@ -30,7 +30,9 @@ public:
 
     void reset(bool _generate_logs) noexcept;
 
-    bool collides(const sf::FloatRect& rect) const noexcept;
+    bool collides_with_ground(const sf::FloatRect& rect) const noexcept;
+
+    bool collides_with_logs(const sf::FloatRect& rect) const noexcept;
 
     bool update_scored(const sf::FloatRect& rect) noexcept;
 
@@ -39,8 +41,12 @@ public:
     void update_hard_mode(float dt) noexcept;
 
     void render(sf::RenderTarget& target) const noexcept;
+
+    bool collides_with_powerup(const sf::FloatRect& rect) noexcept;
+
 private:
     bool generate_logs;
+    bool powerup_taken{false};
 
     sf::Sprite background;
     sf::Sprite ground;

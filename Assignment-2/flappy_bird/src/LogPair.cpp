@@ -10,6 +10,7 @@
 
 #include <Settings.hpp>
 #include <src/LogPair.hpp>
+#include <iostream>
 
 LogPair::LogPair(float _x, float _y, float _gap) noexcept
     : x{_x}, y{_y}, gap{_gap},
@@ -30,7 +31,7 @@ void LogPair::update(float dt) noexcept
     float dy = (Settings::MAIN_SCROLL_SPEED / 2) * dt;
 
     if (dynamic) {
-
+        
         if (is_closing) {
             top.update(x, dy);
             bottom.update(x, -dy);

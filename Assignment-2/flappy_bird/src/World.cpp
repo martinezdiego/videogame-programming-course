@@ -28,15 +28,16 @@ World::World(bool _generate_logs) noexcept
 void World::reset(bool _generate_logs) noexcept
 {
     generate_logs = _generate_logs;
+    powerup_taken = false;
 }
 
-bool World::collides(const sf::FloatRect& rect) const noexcept
+bool World::collides_with_ground(const sf::FloatRect& rect) const noexcept
 {
-    if (rect.top + rect.height >= Settings::VIRTUAL_HEIGHT)
-    {
-        return true;
-    }
-    
+    return rect.top + rect.height >= Settings::VIRTUAL_HEIGHT;
+}
+
+bool World::collides_with_logs(const sf::FloatRect& rect) const noexcept
+{    
     for (auto log_pair: logs)
     {
         if (log_pair->collides(rect))
@@ -72,11 +73,11 @@ void World::update(float dt) noexcept
             logs_spawn_timer = 0.f;
 
             std::uniform_int_distribution<int> dist{-20, 20};
-            float y = std::max(-Settings::LOG_HEIGHT + 10, std::min(last_log_y + dist(rng), Settings::VIRTUAL_HEIGHT + 90 - Settings::LOG_HEIGHT));
+            float y = std::max(-Settings::LOG_HEIGHT + 10, std::min(last_log_y + dist(rng), Settings::VIRTUAL_HEIGHT + Settings::LOGS_GAP - Settings::LOG_HEIGHT));
 
             last_log_y = y;
 
-            logs.push_back(log_factory.create(Settings::VIRTUAL_WIDTH, y));
+            logs.push_back(log_factory.create(Settings::VIRTUAL_WIDTH, y, Settings::LOGS_GAP));
         }
     }
 
@@ -197,7 +198,7 @@ void World::update_hard_mode(float dt) noexcept
     }
 
     if (powerup) {
-        if (powerup->is_out_of_game()) {
+        if (powerup->is_out_of_game() or powerup_taken) {
             powerup_factory.remove(powerup);
             powerup.reset();
         }
@@ -218,8 +219,18 @@ void World::render(sf::RenderTarget& target) const noexcept
 
     target.draw(ground);
 
-    if (powerup) {
+    if (powerup and !powerup_taken) {
         powerup->render(target);
     }
     
+}
+
+bool World::collides_with_powerup(const sf::FloatRect& rect) noexcept
+{
+    if (powerup == nullptr)
+        return false;
+    
+    powerup_taken = powerup->get_collision_rect().intersects(rect);
+
+    return powerup_taken; 
 }

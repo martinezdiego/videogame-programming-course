@@ -40,6 +40,17 @@ void Bird::move_right() noexcept
     vx = Settings::BIRD_HORIZONTAL_SPEED;
 }
 
+void Bird::set_invincible(bool _invincible) noexcept
+{
+    invincible = _invincible;
+    sprite.setTexture(Settings::textures[(invincible ? "bird_ghost" : "bird")]);
+}
+
+bool Bird::get_invincible() const noexcept
+{
+    return invincible;
+}
+
 void Bird::update(float dt) noexcept
 {
     vy += Settings::GRAVITY * dt;

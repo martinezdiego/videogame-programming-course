@@ -26,7 +26,6 @@ PlayingState::PlayingState(StateMachine* sm) noexcept
 void PlayingState::enter(std::shared_ptr<World> _world, std::shared_ptr<Bird> _bird, int _score) noexcept
 {
     world = _world;
-    world->reset(true);
     score = _score;
 
     if (_bird == nullptr)
@@ -35,16 +34,18 @@ void PlayingState::enter(std::shared_ptr<World> _world, std::shared_ptr<Bird> _b
             Settings::VIRTUAL_WIDTH / 2 - Settings::BIRD_WIDTH / 2, Settings::VIRTUAL_HEIGHT / 2 - Settings::BIRD_HEIGHT / 2,
             Settings::BIRD_WIDTH, Settings::BIRD_HEIGHT
         );
+        world->reset(true);
     }
     else
     {
         bird = _bird;
-    }
-
-    auto music_status = Settings::music.getStatus();
-
-    if (music_status != sf::SoundSource::Status::Playing) {
-        Settings::music.play();
+        
+        if (bird->get_invincible()) {
+            Settings::powerup_music.play();
+        }
+        else {
+            Settings::music.play();
+        }
     }
 
     if (game_mode_handler == nullptr) {
@@ -73,7 +74,36 @@ void PlayingState::update(float dt) noexcept
 {
     game_mode_handler->update(dt);
 
-    if (world->collides(bird->get_collision_rect()))
+    if (bird->get_invincible()) 
+    {
+        powerup_limit_timer += dt;
+        
+        if (powerup_limit_timer >= Settings::POWERUP_TIME_LIMIT) 
+        {    
+            powerup_limit_timer = 0.f;
+            bird->set_invincible(false);
+            world->reset(true);
+            Settings::powerup_music.stop();
+            Settings::sounds["leave_powerup"].play();
+            Settings::music.play();
+        }
+    }
+
+    if (world->collides_with_ground(bird->get_collision_rect()))
+    {
+        Settings::sounds["explosion"].play();
+        Settings::sounds["hurt"].play();
+        Settings::powerup_music.stop();
+
+        auto music_status = Settings::music.getStatus();
+        
+        if (music_status == sf::Music::Status::Paused) {
+            Settings::music.play();
+        }
+        
+        state_machine->change_state("count_down");
+    }
+    else if (!bird->get_invincible() && world->collides_with_logs(bird->get_collision_rect()))
     {
         Settings::sounds["explosion"].play();
         Settings::sounds["hurt"].play();
@@ -83,6 +113,13 @@ void PlayingState::update(float dt) noexcept
     {
         ++score;
         Settings::sounds["score"].play();
+    }
+    else if (world->collides_with_powerup(bird->get_collision_rect())) 
+    {
+        Settings::music.pause();
+        Settings::sounds["get_powerup"].play();
+        Settings::powerup_music.play();
+        bird->set_invincible(true);
     }
 }
 
