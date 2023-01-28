@@ -120,6 +120,7 @@ void World::update_hard_mode(float dt) noexcept
     if (generate_logs)
     {
         logs_spawn_timer += dt;
+        powerup_spawn_timer += dt;
 
         if (logs_spawn_timer >= logs_spawn_time)
         {
@@ -147,6 +148,17 @@ void World::update_hard_mode(float dt) noexcept
             }
 
             logs_spawn_time = time_dist(rng);
+        }
+        
+        if (powerup_spawn_timer >= Settings::TIME_TO_SPAWN_POWERUP)
+        {
+            powerup_spawn_timer = 0.f;
+
+            std::uniform_real_distribution<float> powerup_dist{Settings::POWERUP_HEIGHT, Settings::VIRTUAL_HEIGHT - Settings::POWERUP_HEIGHT};
+
+            float y = powerup_dist(rng);
+
+            powerup = powerup_factory.create(Settings::VIRTUAL_WIDTH, y);
         }
     }
 
@@ -183,6 +195,16 @@ void World::update_hard_mode(float dt) noexcept
             ++it;
         }
     }
+
+    if (powerup) {
+        if (powerup->is_out_of_game()) {
+            powerup_factory.remove(powerup);
+            powerup.reset();
+        }
+        else {
+            powerup->update(dt);
+        }
+    }
 }
 
 void World::render(sf::RenderTarget& target) const noexcept
@@ -195,4 +217,9 @@ void World::render(sf::RenderTarget& target) const noexcept
     }
 
     target.draw(ground);
+
+    if (powerup) {
+        powerup->render(target);
+    }
+    
 }

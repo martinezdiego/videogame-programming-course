@@ -46,6 +46,10 @@ struct Settings
     static constexpr int MEDIUM_TEXT_SIZE{18};
     static constexpr int HUGE_TEXT_SIZE{56};
     static constexpr int FLAPPY_TEXT_SIZE{28};
+    static constexpr float POWERUP_WIDTH{17.f};
+    static constexpr float POWERUP_HEIGHT{27.f};
+    static constexpr float TIME_TO_SPAWN_POWERUP{7.f};
+
 
     static std::unordered_map<std::string, sf::Texture> textures;
     static std::unordered_map<std::string, sf::SoundBuffer> sound_buffers;

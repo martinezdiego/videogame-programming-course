@@ -66,6 +66,13 @@ void Settings::load_textures()
     }
 
     Settings::textures["Log"] = texture;
+
+    if (!texture.loadFromFile(Settings::GRAPHICS_PATH / "feather.png"))
+    {
+        throw std::runtime_error{"Error loading texture graphics/feather.png"};
+    }
+
+    Settings::textures["feather"] = texture;
 }
 
 void Settings::load_sounds()
@@ -120,7 +127,7 @@ void Settings::load_sounds()
 
     if (!buffer.loadFromFile(Settings::SOUNDS_PATH / "hit_someting.wav"))
     {
-        throw std::runtime_error{"Error loading sound sounds/hit_someting.wav"};
+        throw std::runtime_error{"Error loading sound sounds/hit_someting.mp3"};
     }
 
     result = Settings::sound_buffers.emplace("hit_someting", buffer);
