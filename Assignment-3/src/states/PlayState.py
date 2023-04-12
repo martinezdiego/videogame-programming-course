@@ -42,6 +42,8 @@ class PlayState(BaseState):
             settings.SOUNDS["paddle_hit"].play()
 
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
+        self.powerups_taken = params.get("powerups_taken", [])
+        self.paddle_powerups_map = params.get("paddle_powerups_data", {})
 
         InputHandler.register_listener(self)
 
@@ -57,10 +59,28 @@ class PlayState(BaseState):
 
             # Check collision with the paddle
             if ball.collides(self.paddle):
-                settings.SOUNDS["paddle_hit"].stop()
-                settings.SOUNDS["paddle_hit"].play()
-                ball.rebound(self.paddle)
-                ball.push(self.paddle)
+                if ("sticky_paddle" in self.paddle_powerups_map):
+                    # sticky paddle effect
+                    sticky_balls = self.paddle_powerups_map["sticky_paddle"]["balls"]
+                    found_at = -1
+                    for i, sticky_ball in enumerate(sticky_balls):
+                        if (sticky_ball[0] == ball):
+                            found_at = i
+                            break
+                    if (found_at == -1):
+                        offset_x = ball.x - self.paddle.x
+                        sticky_balls.append((ball, offset_x))
+                        ball.vx = 0.0
+                        ball.vy = 0.0
+                    else:
+                        offset_x = sticky_balls[found_at][1]
+                        ball.x = self.paddle.x + offset_x
+                else:
+                    # default
+                    settings.SOUNDS["paddle_hit"].stop()
+                    settings.SOUNDS["paddle_hit"].play()
+                    ball.rebound(self.paddle)
+                    ball.push(self.paddle)
 
             # Check collision with brickset
             if not ball.collides(self.brickset):
@@ -95,6 +115,15 @@ class PlayState(BaseState):
                 r = brick.get_collision_rect()
                 self.powerups.append(
                     self.powerups_abstract_factory.get_factory("TwoMoreBall").create(
+                        r.centerx - 8, r.centery - 8
+                    )
+                )
+
+            # Chance to generate sticky paddle powerup
+            if random.random() < 0.1:
+                r = brick.get_collision_rect()
+                self.powerups.append(
+                    self.powerups_abstract_factory.get_factory("StickyPaddle").create(
                         r.centerx - 8, r.centery - 8
                     )
                 )
@@ -209,3 +238,10 @@ class PlayState(BaseState):
                 live_factor=self.live_factor,
                 powerups=self.powerups,
             )
+        elif input_id == "release" and input_data.pressed:
+            if "sticky_paddle" in self.paddle_powerups_map:
+                # release sticky balls if any
+                for ball in self.paddle_powerups_map["sticky_paddle"]["balls"]:
+                        ball[0].vx = random.randint(-80, 80)
+                        ball[0].vy = random.randint(-170, -100)
+                self.paddle_powerups_map["sticky_paddle"]["balls"] = []
