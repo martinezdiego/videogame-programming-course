@@ -45,6 +45,7 @@ class PlayState(BaseState):
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
         self.powerups_taken = params.get("powerups_taken", [])
         self.paddle_powerups_map = params.get("paddle_powerups_map", {})
+        self.bullets = params.get("bullets", [])
 
         # resume powerup's timer
         for powerup in self.powerups_taken:
@@ -140,8 +141,37 @@ class PlayState(BaseState):
                     )
                 )
 
+            # Chance to generate mini gun
+            if random.random() < 0.1:
+                r = brick.get_collision_rect()
+                self.powerups.append(
+                    self.powerups_abstract_factory.get_factory("MiniGun").create(
+                        r.centerx - 8, r.centery - 8
+                    )
+                )
+
         # Removing all balls that are not in play
         self.balls = [ball for ball in self.balls if ball.in_play]
+
+        for bullet in self.bullets:
+            bullet.update(dt)
+            bullet.solve_world_boundaries()
+
+            # Check collision with brickset
+            if not bullet.collides(self.brickset):
+                continue
+            
+            brick = self.brickset.get_colliding_brick(bullet.get_collision_rect())
+
+            if brick is None:
+                continue
+            
+            brick.hit()
+            self.score += brick.score()
+            bullet.in_play = False
+        
+        # Removing all bullets that are not in play
+        self.bullets = [bullet for bullet in self.bullets if bullet.in_play]
 
         self.brickset.update(dt)
 
@@ -226,6 +256,13 @@ class PlayState(BaseState):
         for powerup in self.powerups:
             powerup.render(surface)
 
+        if "minigun" in self.paddle_powerups_map:
+            src.powerups.MiniGun.render_cannons(self, surface)
+        
+        # draw fired bullets
+        for bullet in self.bullets:
+            bullet.render(surface)
+
     def on_input(self, input_id: str, input_data: InputData) -> None:
         if input_id == "move_left":
             if input_data.pressed:
@@ -251,6 +288,7 @@ class PlayState(BaseState):
                 powerups=self.powerups,
                 powerups_taken=self.powerups_taken,
                 paddle_powerups_map=self.paddle_powerups_map,
+                bullets=self.bullets
             )
         elif input_id == "release" and input_data.pressed:
             if "sticky_paddle" in self.paddle_powerups_map:
@@ -259,3 +297,7 @@ class PlayState(BaseState):
                     ball[0].vx = random.randint(-80, 80)
                     ball[0].vy = random.randint(-170, -100)
                 self.paddle_powerups_map["sticky_paddle"]["balls"] = []
+        elif input_id == "fire" and input_data.pressed:
+            if "minigun" in self.paddle_powerups_map:
+                if (len(self.bullets) == 0):
+                    src.powerups.MiniGun.fire(self)

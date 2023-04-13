@@ -31,6 +31,8 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "move_dow
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_LEFT, "move_left")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_p, "pause")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_SPACE, "release")
+input_handler.InputHandler.set_keyboard_action(input_handler.KEY_f, "fire")
+
 
 # Size of our actual window
 WINDOW_WIDTH = 1280

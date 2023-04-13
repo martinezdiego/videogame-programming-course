@@ -20,6 +20,8 @@ class PauseState(BaseState):
         self.powerups = params["powerups"]
         self.powerups_taken = params["powerups_taken"]
         self.paddle_powerups_map = params["paddle_powerups_map"]
+        self.bullets = params["bullets"]
+
         settings.SOUNDS["pause"].play()
         InputHandler.register_listener(self)
 
@@ -83,5 +85,6 @@ class PauseState(BaseState):
                 powerups=self.powerups,
                 powerups_taken=self.powerups_taken,
                 paddle_powerups_map=self.paddle_powerups_map,
+                bullets=self.bullets,
                 resume=True,
             )
