@@ -15,6 +15,7 @@ from gale.factory import AbstractFactory
 from gale.state_machine import BaseState
 from gale.input_handler import InputHandler, InputData, InputData
 from gale.text import render_text
+from gale.timer import Timer
 
 import settings
 import src.powerups
@@ -43,12 +44,23 @@ class PlayState(BaseState):
 
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
         self.powerups_taken = params.get("powerups_taken", [])
-        self.paddle_powerups_map = params.get("paddle_powerups_data", {})
+        self.paddle_powerups_map = params.get("paddle_powerups_map", {})
+
+        # resume powerup's timer
+        for powerup in self.powerups_taken:
+            if (
+                hasattr(powerup, "timer")
+                and hasattr(powerup, "set_timer")
+                and callable(powerup.set_timer)
+            ):
+                timer = powerup.timer
+                powerup.set_timer(self, timer)
 
         InputHandler.register_listener(self)
 
     def exit(self) -> None:
         InputHandler.unregister_listener(self)
+        Timer.clear()
 
     def update(self, dt: float) -> None:
         self.paddle.update(dt)
@@ -59,15 +71,15 @@ class PlayState(BaseState):
 
             # Check collision with the paddle
             if ball.collides(self.paddle):
-                if ("sticky_paddle" in self.paddle_powerups_map):
+                if "sticky_paddle" in self.paddle_powerups_map:
                     # sticky paddle effect
                     sticky_balls = self.paddle_powerups_map["sticky_paddle"]["balls"]
                     found_at = -1
                     for i, sticky_ball in enumerate(sticky_balls):
-                        if (sticky_ball[0] == ball):
+                        if sticky_ball[0] == ball:
                             found_at = i
                             break
-                    if (found_at == -1):
+                    if found_at == -1:
                         offset_x = ball.x - self.paddle.x
                         sticky_balls.append((ball, offset_x))
                         ball.vx = 0.0
@@ -237,11 +249,13 @@ class PlayState(BaseState):
                 points_to_next_live=self.points_to_next_live,
                 live_factor=self.live_factor,
                 powerups=self.powerups,
+                powerups_taken=self.powerups_taken,
+                paddle_powerups_map=self.paddle_powerups_map,
             )
         elif input_id == "release" and input_data.pressed:
             if "sticky_paddle" in self.paddle_powerups_map:
                 # release sticky balls if any
                 for ball in self.paddle_powerups_map["sticky_paddle"]["balls"]:
-                        ball[0].vx = random.randint(-80, 80)
-                        ball[0].vy = random.randint(-170, -100)
+                    ball[0].vx = random.randint(-80, 80)
+                    ball[0].vy = random.randint(-170, -100)
                 self.paddle_powerups_map["sticky_paddle"]["balls"] = []
