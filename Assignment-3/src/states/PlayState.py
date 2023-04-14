@@ -45,6 +45,7 @@ class PlayState(BaseState):
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
         self.powerups_dict = params.get("powerups_dict", {})
         self.bullets = params.get("bullets", [])
+        self.powerups_name_prob = [("TwoMoreBall", 0.25), ("StickyPaddle", 0.25), ("MiniGun", 0.25), ("ReflectorWard", 0.5)]
 
         # resume powerup's timer
         for _, value_dict in self.powerups_dict.items():
@@ -114,38 +115,13 @@ class PlayState(BaseState):
                 )
                 self.paddle.inc_size()
 
-            # Chance to generate two more balls
-            if random.random() < 0.1:
+            # Chance to generate a random powerup
+            id = random.randint(0, len(self.powerups_name_prob) - 1)
+            powerup_name, probability = self.powerups_name_prob[id]
+            if random.random() < probability:
                 r = brick.get_collision_rect()
                 self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("TwoMoreBall").create(
-                        r.centerx - 8, r.centery - 8
-                    )
-                )
-
-            # Chance to generate sticky paddle powerup
-            if random.random() < 0.1:
-                r = brick.get_collision_rect()
-                self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("StickyPaddle").create(
-                        r.centerx - 8, r.centery - 8
-                    )
-                )
-
-            # Chance to generate mini gun
-            if random.random() < 0.1:
-                r = brick.get_collision_rect()
-                self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("MiniGun").create(
-                        r.centerx - 8, r.centery - 8
-                    )
-                )
-
-            # Chance to generate reflector ward
-            if random.random() < 0.1:
-                r = brick.get_collision_rect()
-                self.powerups.append(
-                    self.powerups_abstract_factory.get_factory("ReflectorWard").create(
+                    self.powerups_abstract_factory.get_factory(powerup_name).create(
                         r.centerx - 8, r.centery - 8
                     )
                 )
