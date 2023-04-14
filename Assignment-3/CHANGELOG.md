@@ -31,3 +31,4 @@ Features:
 
   - Refactor taken powerups and improve minigun boundaries -> [ee31c49](https://github.com/martinezdiego/videogame-programming-course/commit/ee31c493cd298d47cb8f751c4ef1d14a19909283)
   - Add powerup's sound effect -> [33198db](https://github.com/martinezdiego/videogame-programming-course/commit/33198dba3f538fc78c3e1ba022a228da4e3cd020)
+  - Update chance to generate a powerup -> [fa70b27](https://github.com/martinezdiego/videogame-programming-course/commit/fa70b274c5a663f37a8eac65641f8a20feba9b49)
