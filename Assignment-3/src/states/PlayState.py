@@ -95,6 +95,10 @@ class PlayState(BaseState):
                     ball.rebound(self.paddle)
                     ball.push(self.paddle)
 
+            # reflector ward effect
+            if "reflector_ward" in self.paddle_powerups_map:
+                src.powerups.ReflectorWard.reflect(ball)
+                
             # Check collision with brickset
             if not ball.collides(self.brickset):
                 continue
@@ -146,6 +150,15 @@ class PlayState(BaseState):
                 r = brick.get_collision_rect()
                 self.powerups.append(
                     self.powerups_abstract_factory.get_factory("MiniGun").create(
+                        r.centerx - 8, r.centery - 8
+                    )
+                )
+
+            # Chance to generate reflector ward
+            if random.random() < 0.1:
+                r = brick.get_collision_rect()
+                self.powerups.append(
+                    self.powerups_abstract_factory.get_factory("ReflectorWard").create(
                         r.centerx - 8, r.centery - 8
                     )
                 )

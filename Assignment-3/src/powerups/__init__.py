@@ -11,5 +11,6 @@ from src.powerups.PowerUp import PowerUp
 from src.powerups.TwoMoreBall import TwoMoreBall
 from src.powerups.StickyPaddle import StickyPaddle
 from src.powerups.MiniGun import MiniGun
+from src.powerups.ReflectorWard import ReflectorWard
 
-(PowerUp, TwoMoreBall, StickyPaddle, MiniGun)
+(PowerUp, TwoMoreBall, StickyPaddle, MiniGun, ReflectorWard)
