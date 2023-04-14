@@ -246,6 +246,22 @@ class PlayState(BaseState):
             (255, 255, 255),
         )
 
+        # draw taken powerups icons
+        powerup_dict = {}
+        for powerup in self.powerups_taken:
+            class_name = powerup.__class__.__name__
+            if class_name not in powerup_dict:
+                powerup_dict[class_name] = powerup
+
+        powerup_x = 0
+        for class_name, powerup in powerup_dict.items():
+            surface.blit(
+                settings.TEXTURES["spritesheet"],
+                (powerup_x, self.paddle.y - 22),
+                settings.FRAMES["powerups"][powerup.frame],
+            )
+            powerup_x += 18
+
         self.brickset.render(surface)
 
         self.paddle.render(surface)
