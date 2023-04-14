@@ -1,5 +1,5 @@
 import random
-from typing import List, TypeVar
+from typing import TypeVar
 
 from gale.timer import Timer
 
@@ -50,3 +50,20 @@ class StickyPaddle(PowerUp):
             ]
 
         return cb
+
+    @staticmethod
+    def stick(ball: Ball, play_state: TypeVar("PlayState")) -> None:
+        sticky_balls = play_state.paddle_powerups_map["sticky_paddle"]["balls"]
+        found_at = -1
+        for i, sticky_ball in enumerate(sticky_balls):
+            if sticky_ball[0] == ball:
+                found_at = i
+                break
+        if found_at == -1:
+            offset_x = ball.x - play_state.paddle.x
+            sticky_balls.append((ball, offset_x))
+            ball.vx = 0.0
+            ball.vy = 0.0
+        else:
+            offset_x = sticky_balls[found_at][1]
+            ball.x = play_state.paddle.x + offset_x

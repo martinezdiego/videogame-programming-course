@@ -74,20 +74,7 @@ class PlayState(BaseState):
             if ball.collides(self.paddle):
                 if "sticky_paddle" in self.paddle_powerups_map:
                     # sticky paddle effect
-                    sticky_balls = self.paddle_powerups_map["sticky_paddle"]["balls"]
-                    found_at = -1
-                    for i, sticky_ball in enumerate(sticky_balls):
-                        if sticky_ball[0] == ball:
-                            found_at = i
-                            break
-                    if found_at == -1:
-                        offset_x = ball.x - self.paddle.x
-                        sticky_balls.append((ball, offset_x))
-                        ball.vx = 0.0
-                        ball.vy = 0.0
-                    else:
-                        offset_x = sticky_balls[found_at][1]
-                        ball.x = self.paddle.x + offset_x
+                    src.powerups.StickyPaddle.stick(ball, self)
                 else:
                     # default
                     settings.SOUNDS["paddle_hit"].stop()
@@ -98,7 +85,7 @@ class PlayState(BaseState):
             # reflector ward effect
             if "reflector_ward" in self.paddle_powerups_map:
                 src.powerups.ReflectorWard.reflect(ball)
-                
+
             # Check collision with brickset
             if not ball.collides(self.brickset):
                 continue
@@ -173,16 +160,16 @@ class PlayState(BaseState):
             # Check collision with brickset
             if not bullet.collides(self.brickset):
                 continue
-            
+
             brick = self.brickset.get_colliding_brick(bullet.get_collision_rect())
 
             if brick is None:
                 continue
-            
+
             brick.hit()
             self.score += brick.score()
             bullet.in_play = False
-        
+
         # Removing all bullets that are not in play
         self.bullets = [bullet for bullet in self.bullets if bullet.in_play]
 
@@ -271,7 +258,7 @@ class PlayState(BaseState):
 
         if "minigun" in self.paddle_powerups_map:
             src.powerups.MiniGun.render_cannons(self, surface)
-        
+
         # draw fired bullets
         for bullet in self.bullets:
             bullet.render(surface)
@@ -301,7 +288,7 @@ class PlayState(BaseState):
                 powerups=self.powerups,
                 powerups_taken=self.powerups_taken,
                 paddle_powerups_map=self.paddle_powerups_map,
-                bullets=self.bullets
+                bullets=self.bullets,
             )
         elif input_id == "release" and input_data.pressed:
             if "sticky_paddle" in self.paddle_powerups_map:
@@ -312,5 +299,5 @@ class PlayState(BaseState):
                 self.paddle_powerups_map["sticky_paddle"]["balls"] = []
         elif input_id == "fire" and input_data.pressed:
             if "minigun" in self.paddle_powerups_map:
-                if (len(self.bullets) == 0):
+                if len(self.bullets) == 0:
                     src.powerups.MiniGun.fire(self)
