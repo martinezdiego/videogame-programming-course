@@ -3,6 +3,7 @@ from typing import TypeVar
 
 from gale.timer import Timer
 
+import settings
 from src.powerups.PowerUp import PowerUp
 from src.Ball import Ball
 
@@ -63,6 +64,8 @@ class StickyPaddle(PowerUp):
             sticky_balls.append((ball, offset_x))
             ball.vx = 0.0
             ball.vy = 0.0
+            settings.SOUNDS["stick"].stop()
+            settings.SOUNDS["stick"].play()
         else:
             offset_x = sticky_balls[found_at][1]
             ball.x = play_state.paddle.x + offset_x

@@ -86,6 +86,8 @@ class MiniGun(PowerUp):
         cannon_width = 5
         cannon_height = 10
         cannon_offset = 8
+        settings.SOUNDS["fire"].stop()
+        settings.SOUNDS["fire"].play()
         # left cannon
         bullet_cx = (
             play_state.paddle.x - cannon_offset - cannon_width + Bullet.WIDTH // 2

@@ -69,6 +69,8 @@ SOUNDS = {
     "life": pygame.mixer.Sound(BASE_DIR / "sounds" / "life.wav"),
     "grow_up": pygame.mixer.Sound(BASE_DIR / "sounds" / "grow_up.wav"),
     "pause": pygame.mixer.Sound(BASE_DIR / "sounds" / "pause.wav"),
+    "fire": pygame.mixer.Sound(BASE_DIR / "sounds" / "fire.mp3"),
+    "stick": pygame.mixer.Sound(BASE_DIR / "sounds" / "stick.mp3"),
 }
 
 TEXTURES = {
