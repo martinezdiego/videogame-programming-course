@@ -43,19 +43,19 @@ class PlayState(BaseState):
             settings.SOUNDS["paddle_hit"].play()
 
         self.powerups_abstract_factory = AbstractFactory("src.powerups")
-        self.powerups_taken = params.get("powerups_taken", [])
-        self.paddle_powerups_map = params.get("paddle_powerups_map", {})
+        self.powerups_dict = params.get("powerups_dict", {})
         self.bullets = params.get("bullets", [])
 
         # resume powerup's timer
-        for powerup in self.powerups_taken:
-            if (
-                hasattr(powerup, "timer")
-                and hasattr(powerup, "set_timer")
-                and callable(powerup.set_timer)
-            ):
-                timer = powerup.timer
-                powerup.set_timer(self, timer)
+        for _, value_dict in self.powerups_dict.items():
+            for powerup in value_dict["objects"]:
+                if (
+                    hasattr(powerup, "timer")
+                    and hasattr(powerup, "set_timer")
+                    and callable(powerup.set_timer)
+                ):
+                    timer = powerup.timer
+                    powerup.set_timer(self, timer)
 
         InputHandler.register_listener(self)
 
@@ -72,7 +72,7 @@ class PlayState(BaseState):
 
             # Check collision with the paddle
             if ball.collides(self.paddle):
-                if "sticky_paddle" in self.paddle_powerups_map:
+                if "StickyPaddle" in self.powerups_dict:
                     # sticky paddle effect
                     src.powerups.StickyPaddle.stick(ball, self)
                 else:
@@ -83,7 +83,7 @@ class PlayState(BaseState):
                     ball.push(self.paddle)
 
             # reflector ward effect
-            if "reflector_ward" in self.paddle_powerups_map:
+            if "ReflectorWard" in self.powerups_dict:
                 src.powerups.ReflectorWard.reflect(ball)
 
             # Check collision with brickset
@@ -247,14 +247,9 @@ class PlayState(BaseState):
         )
 
         # draw taken powerups icons
-        powerup_dict = {}
-        for powerup in self.powerups_taken:
-            class_name = powerup.__class__.__name__
-            if class_name not in powerup_dict:
-                powerup_dict[class_name] = powerup
-
         powerup_x = 0
-        for class_name, powerup in powerup_dict.items():
+        for _, value_dict in self.powerups_dict.items():
+            powerup = value_dict["objects"][0]
             surface.blit(
                 settings.TEXTURES["spritesheet"],
                 (powerup_x, self.paddle.y - 22),
@@ -272,7 +267,8 @@ class PlayState(BaseState):
         for powerup in self.powerups:
             powerup.render(surface)
 
-        if "minigun" in self.paddle_powerups_map:
+        # draw cannons
+        if "MiniGun" in self.powerups_dict:
             src.powerups.MiniGun.render_cannons(self, surface)
 
         # draw fired bullets
@@ -302,18 +298,17 @@ class PlayState(BaseState):
                 points_to_next_live=self.points_to_next_live,
                 live_factor=self.live_factor,
                 powerups=self.powerups,
-                powerups_taken=self.powerups_taken,
-                paddle_powerups_map=self.paddle_powerups_map,
+                powerups_dict=self.powerups_dict,
                 bullets=self.bullets,
             )
         elif input_id == "release" and input_data.pressed:
-            if "sticky_paddle" in self.paddle_powerups_map:
+            if "StickyPaddle" in self.powerups_dict:
                 # release sticky balls if any
-                for ball in self.paddle_powerups_map["sticky_paddle"]["balls"]:
+                for ball in self.powerups_dict["StickyPaddle"]["balls"]:
                     ball[0].vx = random.randint(-80, 80)
                     ball[0].vy = random.randint(-170, -100)
-                self.paddle_powerups_map["sticky_paddle"]["balls"] = []
+                self.powerups_dict["StickyPaddle"]["balls"] = []
         elif input_id == "fire" and input_data.pressed:
-            if "minigun" in self.paddle_powerups_map:
+            if "MiniGun" in self.powerups_dict:
                 if len(self.bullets) == 0:
                     src.powerups.MiniGun.fire(self)
