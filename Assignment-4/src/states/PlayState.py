@@ -131,7 +131,7 @@ class PlayState(BaseState):
         if not self.active:
             return
 
-        if input_id == "click" and input_data.pressed:
+        if input_id == "click":
             pos_x, pos_y = input_data.position
             pos_x = pos_x * settings.VIRTUAL_WIDTH // settings.WINDOW_WIDTH
             pos_y = pos_y * settings.VIRTUAL_HEIGHT // settings.WINDOW_HEIGHT
@@ -139,15 +139,17 @@ class PlayState(BaseState):
             j = (pos_x - self.board.x) // settings.TILE_SIZE
 
             if 0 <= i < settings.BOARD_HEIGHT and 0 <= j <= settings.BOARD_WIDTH:
-                if not self.highlighted_tile:
+                # select tile to drag
+                if input_data.pressed and not self.highlighted_tile:
                     self.highlighted_tile = True
                     self.highlighted_i1 = i
                     self.highlighted_j1 = j
-                else:
+                # drop selected tile
+                elif input_data.released and self.highlighted_tile:
                     self.highlighted_i2 = i
                     self.highlighted_j2 = j
-                    di = abs(self.highlighted_i2 - self.highlighted_i1)
-                    dj = abs(self.highlighted_j2 - self.highlighted_j1)
+                    di = abs(i - self.highlighted_i1)
+                    dj = abs(j - self.highlighted_j1)
 
                     if di <= 1 and dj <= 1 and di != dj:
                         self.active = False
@@ -185,12 +187,45 @@ class PlayState(BaseState):
                             0.25,
                             [
                                 (tile1, {"x": tile2.x, "y": tile2.y}),
-                                (tile2, {"x": tile1.x, "y": tile1.y}),
+                                (
+                                    tile2,
+                                    {
+                                        "x": self.highlighted_j1 * settings.TILE_SIZE,
+                                        "y": self.highlighted_i1 * settings.TILE_SIZE,
+                                    },
+                                ),
                             ],
                             on_finish=arrive,
                         )
 
                     self.highlighted_tile = False
+
+        elif (
+            input_id in ("rotate_up", "rotate_left", "rotate_down", "rotate_right")
+            and self.highlighted_tile
+        ):
+            pos_x, pos_y = input_data.position
+            pos_x = pos_x * settings.VIRTUAL_WIDTH // settings.WINDOW_WIDTH
+            pos_y = pos_y * settings.VIRTUAL_HEIGHT // settings.WINDOW_HEIGHT
+            i = (pos_y - self.board.y) // settings.TILE_SIZE
+            j = (pos_x - self.board.x) // settings.TILE_SIZE
+            di = abs(i - self.highlighted_i1)
+            dj = abs(j - self.highlighted_j1)
+
+            if di <= 1 and dj <= 1 and di != dj:
+                self.board.tiles[self.highlighted_i1][self.highlighted_j1].x = (
+                    pos_x - self.board.x - settings.TILE_SIZE // 2
+                )
+                self.board.tiles[self.highlighted_i1][self.highlighted_j1].y = (
+                    pos_y - self.board.y - settings.TILE_SIZE // 2
+                )
+            else:
+                self.board.tiles[self.highlighted_i1][self.highlighted_j1].x = (
+                    self.highlighted_j1 * settings.TILE_SIZE
+                )
+                self.board.tiles[self.highlighted_i1][self.highlighted_j1].y = (
+                    self.highlighted_i1 * settings.TILE_SIZE
+                )
 
     def __calculate_matches(self, tiles: List) -> None:
         matches = self.board.calculate_matches_for(tiles)
