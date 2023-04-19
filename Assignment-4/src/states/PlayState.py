@@ -18,6 +18,7 @@ from gale.timer import Timer
 
 import settings
 from src.Tile import Tile
+from src.Board import Board
 
 
 class PlayState(BaseState):
@@ -39,6 +40,8 @@ class PlayState(BaseState):
         self.timer = settings.LEVEL_TIME
 
         self.goal_score = self.level * 1.25 * 1000
+
+        self.is_there_a_match = False
 
         # A surface that supports alpha to highlight a selected tile
         self.tile_alpha_surface = pygame.Surface(
@@ -63,6 +66,13 @@ class PlayState(BaseState):
             # Play warning sound on timer if we get low
             if self.timer <= 5:
                 settings.SOUNDS["clock"].play()
+
+            # recreate the board while there are no matches
+            if self.is_there_a_match is False:
+                while not self.__is_there_a_match():
+                    self.board = Board(settings.VIRTUAL_WIDTH - 272, 16)
+
+            self.is_there_a_match = True
 
         Timer.every(1, decrement_timer)
 
@@ -139,7 +149,7 @@ class PlayState(BaseState):
             i = (pos_y - self.board.y) // settings.TILE_SIZE
             j = (pos_x - self.board.x) // settings.TILE_SIZE
 
-            if 0 <= i < settings.BOARD_HEIGHT and 0 <= j <= settings.BOARD_WIDTH:
+            if 0 <= i < settings.BOARD_HEIGHT and 0 <= j < settings.BOARD_WIDTH:
                 # select tile to drag
                 if input_data.pressed and not self.highlighted_tile:
                     self.highlighted_tile = True
@@ -153,12 +163,8 @@ class PlayState(BaseState):
                     dj = abs(j - self.highlighted_j1)
 
                     self.active = False
-                    tile1 = self.board.tiles[self.highlighted_i1][
-                        self.highlighted_j1
-                    ]
-                    tile2 = self.board.tiles[self.highlighted_i2][
-                        self.highlighted_j2
-                    ]
+                    tile1 = self.board.tiles[self.highlighted_i1][self.highlighted_j1]
+                    tile2 = self.board.tiles[self.highlighted_i2][self.highlighted_j2]
                     self.__swap_tiles(tile1, tile2)
                     matches = self.board.calculate_matches_for([tile1, tile2])
                     self.__swap_tiles(tile1, tile2)
@@ -170,13 +176,11 @@ class PlayState(BaseState):
                                 (
                                     tile1,
                                     {
-                                        "x": self.highlighted_j1
-                                        * settings.TILE_SIZE,
-                                        "y": self.highlighted_i1
-                                        * settings.TILE_SIZE,
+                                        "x": self.highlighted_j1 * settings.TILE_SIZE,
+                                        "y": self.highlighted_i1 * settings.TILE_SIZE,
                                     },
                                 )
-                            ]
+                            ],
                         )
                         self.active = True
                     else:
@@ -189,17 +193,14 @@ class PlayState(BaseState):
                                 (
                                     tile2,
                                     {
-                                        "x": self.highlighted_j1
-                                        * settings.TILE_SIZE,
-                                        "y": self.highlighted_i1
-                                        * settings.TILE_SIZE,
+                                        "x": self.highlighted_j1 * settings.TILE_SIZE,
+                                        "y": self.highlighted_i1 * settings.TILE_SIZE,
                                     },
                                 ),
                             ],
-                            on_finish=lambda: self.__calculate_matches(
-                                [tile1, tile2]
-                            ),
+                            on_finish=lambda: self.__calculate_matches([tile1, tile2]),
                         )
+                        self.is_there_a_match = False
 
                     self.highlighted_tile = False
 
@@ -262,3 +263,24 @@ class PlayState(BaseState):
             tile1.i,
             tile1.j,
         )
+
+    def __is_there_a_match(self) -> bool:
+        directions = [(0, -1), (1, 0), (0, 1), (-1, 0)]
+        for i in range(settings.BOARD_HEIGHT):
+            for j in range(settings.BOARD_WIDTH):
+                for x, y in directions:
+                    neighbor_i = i + x
+                    neighbor_j = j + y
+                    if (
+                        0 <= neighbor_i < settings.BOARD_HEIGHT
+                        and 0 <= neighbor_j < settings.BOARD_WIDTH
+                    ):
+                        tile1 = self.board.tiles[i][j]
+                        tile2 = self.board.tiles[neighbor_i][neighbor_j]
+                        self.__swap_tiles(tile1, tile2)
+                        matches = self.board.calculate_matches_for([tile1, tile2])
+                        self.__swap_tiles(tile1, tile2)
+                        if matches is not None:
+                            self.board.matches = []
+                            return True
+        return False
