@@ -17,6 +17,7 @@ from gale.text import render_text
 from gale.timer import Timer
 
 import settings
+from src.Tile import Tile
 
 
 class PlayState(BaseState):
@@ -151,37 +152,35 @@ class PlayState(BaseState):
                     di = abs(i - self.highlighted_i1)
                     dj = abs(j - self.highlighted_j1)
 
-                    if di <= 1 and dj <= 1 and di != dj:
-                        self.active = False
-                        tile1 = self.board.tiles[self.highlighted_i1][
-                            self.highlighted_j1
-                        ]
-                        tile2 = self.board.tiles[self.highlighted_i2][
-                            self.highlighted_j2
-                        ]
+                    self.active = False
+                    tile1 = self.board.tiles[self.highlighted_i1][
+                        self.highlighted_j1
+                    ]
+                    tile2 = self.board.tiles[self.highlighted_i2][
+                        self.highlighted_j2
+                    ]
+                    self.__swap_tiles(tile1, tile2)
+                    matches = self.board.calculate_matches_for([tile1, tile2])
+                    self.__swap_tiles(tile1, tile2)
 
-                        def arrive():
-                            tile1 = self.board.tiles[self.highlighted_i1][
-                                self.highlighted_j1
+                    if matches is None:
+                        Timer.tween(
+                            0.25,
+                            [
+                                (
+                                    tile1,
+                                    {
+                                        "x": self.highlighted_j1
+                                        * settings.TILE_SIZE,
+                                        "y": self.highlighted_i1
+                                        * settings.TILE_SIZE,
+                                    },
+                                )
                             ]
-                            tile2 = self.board.tiles[self.highlighted_i2][
-                                self.highlighted_j2
-                            ]
-                            (
-                                self.board.tiles[tile1.i][tile1.j],
-                                self.board.tiles[tile2.i][tile2.j],
-                            ) = (
-                                self.board.tiles[tile2.i][tile2.j],
-                                self.board.tiles[tile1.i][tile1.j],
-                            )
-                            tile1.i, tile1.j, tile2.i, tile2.j = (
-                                tile2.i,
-                                tile2.j,
-                                tile1.i,
-                                tile1.j,
-                            )
-                            self.__calculate_matches([tile1, tile2])
-
+                        )
+                        self.active = True
+                    else:
+                        self.__swap_tiles(tile1, tile2)
                         # Swap tiles
                         Timer.tween(
                             0.25,
@@ -190,12 +189,16 @@ class PlayState(BaseState):
                                 (
                                     tile2,
                                     {
-                                        "x": self.highlighted_j1 * settings.TILE_SIZE,
-                                        "y": self.highlighted_i1 * settings.TILE_SIZE,
+                                        "x": self.highlighted_j1
+                                        * settings.TILE_SIZE,
+                                        "y": self.highlighted_i1
+                                        * settings.TILE_SIZE,
                                     },
                                 ),
                             ],
-                            on_finish=arrive,
+                            on_finish=lambda: self.__calculate_matches(
+                                [tile1, tile2]
+                            ),
                         )
 
                     self.highlighted_tile = False
@@ -218,13 +221,6 @@ class PlayState(BaseState):
                 )
                 self.board.tiles[self.highlighted_i1][self.highlighted_j1].y = (
                     pos_y - self.board.y - settings.TILE_SIZE // 2
-                )
-            else:
-                self.board.tiles[self.highlighted_i1][self.highlighted_j1].x = (
-                    self.highlighted_j1 * settings.TILE_SIZE
-                )
-                self.board.tiles[self.highlighted_i1][self.highlighted_j1].y = (
-                    self.highlighted_i1 * settings.TILE_SIZE
                 )
 
     def __calculate_matches(self, tiles: List) -> None:
@@ -250,4 +246,19 @@ class PlayState(BaseState):
             on_finish=lambda: self.__calculate_matches(
                 [item[0] for item in falling_tiles]
             ),
+        )
+
+    def __swap_tiles(self, tile1: Tile, tile2: Tile) -> None:
+        (
+            self.board.tiles[tile1.i][tile1.j],
+            self.board.tiles[tile2.i][tile2.j],
+        ) = (
+            self.board.tiles[tile2.i][tile2.j],
+            self.board.tiles[tile1.i][tile1.j],
+        )
+        tile1.i, tile1.j, tile2.i, tile2.j = (
+            tile2.i,
+            tile2.j,
+            tile1.i,
+            tile1.j,
         )
