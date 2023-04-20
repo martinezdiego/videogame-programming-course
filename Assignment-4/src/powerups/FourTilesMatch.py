@@ -56,3 +56,6 @@ class FourTilesMatch(PowerUp):
                 match.append(board.tiles[neighbor_i][neighbor_j])
 
         board.matches.append(match)
+
+        settings.SOUNDS["powerup_1"].stop()
+        settings.SOUNDS["powerup_1"].play()
