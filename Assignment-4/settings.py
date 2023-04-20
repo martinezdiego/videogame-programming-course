@@ -22,7 +22,12 @@ input_handler.InputHandler.set_keyboard_action(input_handler.KEY_KP_ENTER, "ente
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_RETURN, "enter")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_UP, "up")
 input_handler.InputHandler.set_keyboard_action(input_handler.KEY_DOWN, "down")
-input_handler.InputHandler.set_mouse_click_action(input_handler.MOUSE_BUTTON_1, "click")
+input_handler.InputHandler.set_mouse_click_action(
+    input_handler.MOUSE_BUTTON_1, "left_click"
+)
+input_handler.InputHandler.set_mouse_click_action(
+    input_handler.MOUSE_BUTTON_3, "right_click"
+)
 input_handler.InputHandler.set_mouse_motion_action(
     input_handler.MOUSE_MOTION_UP, "rotate_up"
 )
@@ -49,7 +54,7 @@ BOARD_HEIGHT = 8
 TILE_SIZE = 32
 
 NUM_VARIETIES = 6
-NUM_COLORS = 18
+NUM_COLORS = 4
 
 BACKGROUND_SCROLL_SPEED = 40
 BACKGROUND_LOOPING_POINT = -1024 + VIRTUAL_WIDTH - 4 + 51

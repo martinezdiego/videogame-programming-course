@@ -20,6 +20,8 @@ import settings
 from src.Tile import Tile
 from src.Board import Board
 
+from src.powerups.FourTilesMatch import FourTilesMatch
+
 
 class PlayState(BaseState):
     def enter(self, **enter_params: Dict[str, Any]) -> None:
@@ -142,7 +144,7 @@ class PlayState(BaseState):
         if not self.active:
             return
 
-        if input_id == "click":
+        if input_id == "left_click":
             pos_x, pos_y = input_data.position
             pos_x = pos_x * settings.VIRTUAL_WIDTH // settings.WINDOW_WIDTH
             pos_y = pos_y * settings.VIRTUAL_HEIGHT // settings.WINDOW_HEIGHT
@@ -162,14 +164,61 @@ class PlayState(BaseState):
                     di = abs(i - self.highlighted_i1)
                     dj = abs(j - self.highlighted_j1)
 
-                    self.active = False
-                    tile1 = self.board.tiles[self.highlighted_i1][self.highlighted_j1]
-                    tile2 = self.board.tiles[self.highlighted_i2][self.highlighted_j2]
-                    self.__swap_tiles(tile1, tile2)
-                    matches = self.board.calculate_matches_for([tile1, tile2])
-                    self.__swap_tiles(tile1, tile2)
+                    if di <= 1 and dj <= 1 and di != dj:
+                        self.active = False
+                        tile1 = self.board.tiles[self.highlighted_i1][
+                            self.highlighted_j1
+                        ]
+                        tile2 = self.board.tiles[self.highlighted_i2][
+                            self.highlighted_j2
+                        ]
+                        self.__swap_tiles(tile1, tile2)
+                        matches = self.board.calculate_matches_for([tile1, tile2])
+                        self.__swap_tiles(tile1, tile2)
 
-                    if matches is None:
+                        if matches is None:
+                            Timer.tween(
+                                0.25,
+                                [
+                                    (
+                                        tile1,
+                                        {
+                                            "x": self.highlighted_j1
+                                            * settings.TILE_SIZE,
+                                            "y": self.highlighted_i1
+                                            * settings.TILE_SIZE,
+                                        },
+                                    )
+                                ],
+                            )
+                            self.active = True
+                        else:
+                            self.board.matches = []
+                            self.__swap_tiles(tile1, tile2)
+
+                            Timer.tween(
+                                0.25,
+                                [
+                                    (tile1, {"x": tile2.x, "y": tile2.y}),
+                                    (
+                                        tile2,
+                                        {
+                                            "x": self.highlighted_j1
+                                            * settings.TILE_SIZE,
+                                            "y": self.highlighted_i1
+                                            * settings.TILE_SIZE,
+                                        },
+                                    ),
+                                ],
+                                on_finish=lambda: self.__calculate_matches(
+                                    [tile1, tile2]
+                                ),
+                            )
+                            self.is_there_a_match = False
+                    else:
+                        tile1 = self.board.tiles[self.highlighted_i1][
+                            self.highlighted_j1
+                        ]
                         Timer.tween(
                             0.25,
                             [
@@ -183,24 +232,6 @@ class PlayState(BaseState):
                             ],
                         )
                         self.active = True
-                    else:
-                        self.__swap_tiles(tile1, tile2)
-                        # Swap tiles
-                        Timer.tween(
-                            0.25,
-                            [
-                                (tile1, {"x": tile2.x, "y": tile2.y}),
-                                (
-                                    tile2,
-                                    {
-                                        "x": self.highlighted_j1 * settings.TILE_SIZE,
-                                        "y": self.highlighted_i1 * settings.TILE_SIZE,
-                                    },
-                                ),
-                            ],
-                            on_finish=lambda: self.__calculate_matches([tile1, tile2]),
-                        )
-                        self.is_there_a_match = False
 
                     self.highlighted_tile = False
 
@@ -223,6 +254,18 @@ class PlayState(BaseState):
                 self.board.tiles[self.highlighted_i1][self.highlighted_j1].y = (
                     pos_y - self.board.y - settings.TILE_SIZE // 2
                 )
+        elif input_id == "right_click" and input_data.pressed:
+            pos_x, pos_y = input_data.position
+            pos_x = pos_x * settings.VIRTUAL_WIDTH // settings.WINDOW_WIDTH
+            pos_y = pos_y * settings.VIRTUAL_HEIGHT // settings.WINDOW_HEIGHT
+            i = (pos_y - self.board.y) // settings.TILE_SIZE
+            j = (pos_x - self.board.x) // settings.TILE_SIZE
+
+            if 0 <= i < settings.BOARD_HEIGHT and 0 <= j < settings.BOARD_WIDTH:
+                tile = self.board.tiles[i][j]
+                if isinstance(tile, FourTilesMatch):
+                    tile.exec(self)
+                    self.__calculate_matches([tile])
 
     def __calculate_matches(self, tiles: List) -> None:
         matches = self.board.calculate_matches_for(tiles)
@@ -234,8 +277,36 @@ class PlayState(BaseState):
         settings.SOUNDS["match"].stop()
         settings.SOUNDS["match"].play()
 
+        tile_powerups = []
+
         for match in matches:
             self.score += len(match) * 50
+
+            for tile in match:
+                if isinstance(tile, FourTilesMatch):
+                    tile_powerups.append(tile)
+
+            # 4-tiles match powerup
+            if len(match) == 4:
+                tile_index = 0
+                # find last tile moved
+                for i, tile in enumerate(match):
+                    if tile == tiles[0]:
+                        tile_index = i
+                        break
+                # remove last tile moved from match
+                tile = match.pop(tile_index)
+                tile_i = tile.i
+                tile_j = tile.j
+                tile_color = tile.color
+                tile_variety = tile.variety
+                # spawn powerup at the position of the last tile moved
+                self.board.tiles[tile_i][tile_j] = FourTilesMatch(
+                    tile_i, tile_j, tile_color, tile_variety
+                )
+
+        for powerup in tile_powerups:
+            powerup.exec(self)
 
         self.board.remove_matches()
 
