@@ -21,6 +21,7 @@ from src.Tile import Tile
 from src.Board import Board
 
 from src.powerups.FourTilesMatch import FourTilesMatch
+from src.powerups.FiveTilesMatch import FiveTilesMatch
 
 
 class PlayState(BaseState):
@@ -263,7 +264,7 @@ class PlayState(BaseState):
 
             if 0 <= i < settings.BOARD_HEIGHT and 0 <= j < settings.BOARD_WIDTH:
                 tile = self.board.tiles[i][j]
-                if isinstance(tile, FourTilesMatch):
+                if isinstance(tile, FourTilesMatch) or isinstance(tile, FiveTilesMatch):
                     tile.exec(self)
                     self.__calculate_matches([tile])
 
@@ -283,7 +284,7 @@ class PlayState(BaseState):
             self.score += len(match) * 50
 
             for tile in match:
-                if isinstance(tile, FourTilesMatch):
+                if isinstance(tile, FourTilesMatch) or isinstance(tile, FiveTilesMatch):
                     tile_powerups.append(tile)
 
             # 4-tiles match powerup
@@ -304,6 +305,26 @@ class PlayState(BaseState):
                 self.board.tiles[tile_i][tile_j] = FourTilesMatch(
                     tile_i, tile_j, tile_color, tile_variety
                 )
+            
+            # 5-tiles match powerup
+            if len(match) >= 5:
+                tile_index = 0
+                # find last tile moved
+                for i, tile in enumerate(match):
+                    if tile == tiles[0]:
+                        tile_index = i
+                        break
+                # remove last tile moved from match
+                tile = match.pop(tile_index)
+                tile_i = tile.i
+                tile_j = tile.j
+                tile_color = tile.color
+                tile_variety = tile.variety
+                # spawn powerup at the position of the last tile moved
+                self.board.tiles[tile_i][tile_j] = FiveTilesMatch(
+                    tile_i, tile_j, tile_color, tile_variety
+                )
+            
 
         for powerup in tile_powerups:
             powerup.exec(self)
