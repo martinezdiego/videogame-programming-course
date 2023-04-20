@@ -79,6 +79,8 @@ SOUNDS = {
     "match": pygame.mixer.Sound(BASE_DIR / "sounds" / "match.wav"),
     "next-level": pygame.mixer.Sound(BASE_DIR / "sounds" / "next-level.wav"),
     "select": pygame.mixer.Sound(BASE_DIR / "sounds" / "select.wav"),
+    "powerup_1": pygame.mixer.Sound(BASE_DIR / "sounds" / "powerup_1.wav"),
+    "powerup_2": pygame.mixer.Sound(BASE_DIR / "sounds" / "powerup_2.wav")
 }
 
 pygame.mixer.music.load(BASE_DIR / "sounds" / "music.mp3")
